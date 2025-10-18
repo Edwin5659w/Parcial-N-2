@@ -9,4 +9,4 @@ permitiendo validaciones como verificar que la fecha de vencimiento (dueDate) se
 Esta estructura mejora la mantenibilidad, facilita las pruebas unitarias y permite cambiar la capa de persistencia sin modificar la lógica principal.
 Se eligió Node/Express por su facilidad de uso, rapidez para crear prototipos locales y porque permite escribir un código simple, legible y organizado.
 
-3. 
+3. https://youtu.be/XM6DMRkcR1M
