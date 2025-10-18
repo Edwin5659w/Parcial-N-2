@@ -53,121 +53,68 @@ class TaskController {
 
   async getTaskById(req, res) {
     try {
-      const { id } = req.params;
-      const taskId = parseInt(id);
-
-      if (isNaN(taskId)) {
-        return res.status(400).json({
-          success: false,
-          error: 'ID de tarea inválido'
-        });
+      // convertir id a número y validar
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ success: false, error: 'ID inválido' });
       }
 
-      const task = this.taskService.getTaskById(taskId);
+      const task = this.taskService.getTaskById(id);
+      if (!task) {
+        return res.status(404).json({ success: false, error: 'Tarea no encontrada' });
+      }
 
-      res.status(200).json({
-        success: true,
-        data: task
-      });
+      res.status(200).json({ success: true, data: task });
     } catch (error) {
-      if (error.message === 'Tarea no encontrada') {
-        res.status(404).json({
-          success: false,
-          error: error.message
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: error.message
-        });
-      }
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
   async updateTaskStatus(req, res) {
     try {
-      const { id } = req.params;
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ success: false, error: 'ID inválido' });
+      }
+
+      // asegúrate de que req.body exista
+      if (!req.body) {
+        return res.status(400).json({ success: false, error: 'Body vacío' });
+      }
+
       const { status } = req.body;
-      const taskId = parseInt(id);
+      const updateDTO = new UpdateTaskStatusDTO(status);
 
-      if (isNaN(taskId)) {
-        return res.status(400).json({
-          success: false,
-          error: 'ID de tarea inválido'
-        });
-      }
-
-      const updateStatusDTO = new UpdateTaskStatusDTO(status);
-
-      const updatedTask = this.taskService.updateTaskStatus(taskId, updateStatusDTO);
-
-      res.status(200).json({
-        success: true,
-        data: updatedTask,
-        message: 'Estado de tarea actualizado exitosamente'
-      });
+      const updated = this.taskService.updateTaskStatus(id, updateDTO);
+      res.status(200).json({ success: true, data: updated });
     } catch (error) {
-      if (error.message === 'Tarea no encontrada') {
-        res.status(404).json({
-          success: false,
-          error: error.message
-        });
-      } else {
-        res.status(400).json({
-          success: false,
-          error: error.message
-        });
-      }
+      // si el service lanza "Tarea no encontrada" lo devolvemos como 404
+      const code = error.message === 'Tarea no encontrada' ? 404 : 400;
+      res.status(code).json({ success: false, error: error.message });
     }
   }
 
   async deleteTask(req, res) {
     try {
-      const { id } = req.params;
-      const taskId = parseInt(id);
-
-      if (isNaN(taskId)) {
-        return res.status(400).json({
-          success: false,
-          error: 'ID de tarea inválido'
-        });
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ success: false, error: 'ID inválido' });
       }
 
-      const result = this.taskService.deleteTask(taskId);
-
-      res.status(200).json({
-        success: true,
-        message: result.message
-      });
+      this.taskService.deleteTask(id);
+      res.status(200).json({ success: true, message: 'Tarea eliminada' });
     } catch (error) {
-      if (error.message === 'Tarea no encontrada') {
-        res.status(404).json({
-          success: false,
-          error: error.message
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: error.message
-        });
-      }
+      const code = error.message === 'Tarea no encontrada' ? 404 : 500;
+      res.status(code).json({ success: false, error: error.message });
     }
   }
 
   async getOverdueTasks(req, res) {
     try {
-      const overdueTasks = this.taskService.getOverdueTasks();
-
-      res.status(200).json({
-        success: true,
-        data: overdueTasks,
-        count: overdueTasks.length
-      });
+      const tasks = this.taskService.getOverdueTasks(new Date());
+      res.status(200).json({ success: true, data: tasks, count: tasks.length });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 }
